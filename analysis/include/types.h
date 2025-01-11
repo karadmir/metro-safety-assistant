@@ -2,6 +2,8 @@
 #define TYPES_H
 
 #include <opencv2/core/types.hpp>
+#include <map>
+#include <vector>
 
 enum class BodyPart {
     NOSE,
