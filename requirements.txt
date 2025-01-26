@@ -1,3 +1,13 @@
 opencv-python==4.10.0.84
 Flask==3.1.0
 fastapi==0.115.6
+tensorflow==2.18.0
+numpy==2.0.2
+pillow==11.1.0
+keras==3.8.0
+ultralytics
+uvicorn
+python-multipart
+onnxruntime
+onnx
+tf2onnx

@@ -1,12 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>SubSafe</title>
-    <link rel="stylesheet" href="css/main.css">
+    <title>Subway Safety Assistant</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
+    <header>
+        <div class="container">
+            <img src="images/_dd9b06c1-a797-4d60-ba50-aad5c8b84654.jpeg" alt="Logo" class="logo">
+            <h1>Subway Safety Assistant</h1>
+        </div>
+    </header>
+
+    <main>
+        <section class="video-upload">
+            <video id="video" controls width="200px"><source src="https://video-preview.s3.yandex.net/giqiTgIAAAA.mp4"></video>
+        </section>
+
+        <div class="buttons-container">
+            <button onclick="upload()">Upload</button>
+            <button onclick="proceed()">Proceed</button>
+        </div>
+    </main>
+
 </body>
-<script src="js/main.js"></script>
+<script src="js/script.js"></script>
 </html>
