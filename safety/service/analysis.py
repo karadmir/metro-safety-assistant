@@ -38,7 +38,7 @@ class Station:
 
 
 def assess_safety(station: Station):
-    if abs(station.safety_lines[0].k) < abs(station.safety_lines[1].k):
+    if abs(station.safety_lines[0].k) > abs(station.safety_lines[1].k):
         upperlimit = station.safety_lines[0]
         lowerlimit = station.safety_lines[1]
     else:
@@ -49,10 +49,8 @@ def assess_safety(station: Station):
         if station.train:
             person.safe = True
         else:
-            if (person.leftfoot.y < (upperlimit.k * person.leftfoot.x + upperlimit.b) and person.leftfoot.y > (
-                    lowerlimit.k * person.leftfoot.x + lowerlimit.b)) or (
-                    person.rightfoot.y < (upperlimit.k * person.rightfoot.x + upperlimit.b) and person.rightfoot.y > (
-                    lowerlimit.k * person.rightfoot.x + lowerlimit.b)):
+            if ((lowerlimit.k * person.leftfoot.x + lowerlimit.b) < person.leftfoot.y < (upperlimit.k * person.leftfoot.x + upperlimit.b)) or ((
+                    lowerlimit.k * person.rightfoot.x + lowerlimit.b) < person.rightfoot.y < (upperlimit.k * person.rightfoot.x + upperlimit.b)):
                 person.safe = False
             else:
                 person.safe = True
