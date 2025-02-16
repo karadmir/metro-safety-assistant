@@ -37,20 +37,19 @@ class Station:
         self.people = people
 
 
-def assess_safety(station: Station):
-    if abs(station.safety_lines[0].k) > abs(station.safety_lines[1].k):
-        upperlimit = station.safety_lines[0]
-        lowerlimit = station.safety_lines[1]
-    else:
-        upperlimit = station.safety_lines[1]
-        lowerlimit = station.safety_lines[0]
+def is_point_between_lines(point: Point, left_line: SafetyLine, right_line: SafetyLine):
+    d1 = (left_line.k * point.x - point.y + left_line.b) / np.sqrt(left_line.k**2 + 1)
+    d2 = (right_line.k * point.x - point.y + right_line.b) / np.sqrt(right_line.k**2 + 1)
 
+    return d1 * d2 <= 0
+
+
+def assess_safety(station: Station):
     for person in station.people:
         if station.train:
             person.safe = True
         else:
-            if ((lowerlimit.k * person.leftfoot.x + lowerlimit.b) < person.leftfoot.y < (upperlimit.k * person.leftfoot.x + upperlimit.b)) or ((
-                    lowerlimit.k * person.rightfoot.x + lowerlimit.b) < person.rightfoot.y < (upperlimit.k * person.rightfoot.x + upperlimit.b)):
+            if is_point_between_lines(person.leftfoot, station.safety_lines[0], station.safety_lines[1]) or is_point_between_lines(person.rightfoot, station.safety_lines[0], station.safety_lines[1]):
                 person.safe = False
             else:
                 person.safe = True

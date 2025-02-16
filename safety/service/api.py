@@ -4,6 +4,7 @@ from fastapi import FastAPI, File, Response
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
 
+from safety.service.analysis import SafetyLine, Train, Person
 from vision import detect_objects
 from analysis import assess_safety, Station
 
@@ -31,7 +32,6 @@ def process(video: bytes = File(...)):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter('output.mp4', fourcc, fps, (w, h))
 
-    count = 0
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -49,20 +49,27 @@ def process(video: bytes = File(...)):
 
         for obj in objects:
             if obj[0] == 'line':
-                safety_lines.append(obj[1])
+                safety_lines.append(SafetyLine(obj[1][0], obj[1][1]))
             elif obj[0] == 'train':
-                train = obj[1]
+                train = Train(obj[1])
             elif obj[0] == 'person':
-                people.append(obj[1])
+                p = Person(obj[1][:4], obj[1][4:], False)
+                people.append(p)
 
         station = Station(safety_lines, train, people)
 
-        assess_safety(draw, station)
+        assess_safety(station)
+
+        for person in people:
+            if person.safe:
+                color = (255, 255, 255)
+            else:
+                color = (0, 0, 255)
+            tr = (int(person.bbox[0]), int(person.bbox[1]))
+            br = (int(person.bbox[2]), int(person.bbox[3]))
+            cv2.rectangle(draw, tr, br, color, 2)
 
         out.write(draw)
-        count += 1
-        if count % 100 == 0:
-            print(f'Processed {count} frames')
 
     cap.release()
     out.release()

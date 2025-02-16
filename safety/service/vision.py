@@ -6,7 +6,7 @@ from PIL import Image
 
 
 class UNet:
-    def __init__(self, model_path):
+    def __init__(self, model_path: str):
         self.session = onnxruntime.InferenceSession(model_path)
 
     def predict(self, image: np.array, conf: float = 0.5):
@@ -28,29 +28,54 @@ yolo_seg = YOLO('models/yolo11s-seg.pt', task='segment')
 unet = UNet('models/unet.onnx')
 
 
-def detect_objects(frame):
+def detect_objects(frame: np.array) -> list:
     result = unet.predict(frame, conf=0.25)
+    # save result
+    cv2.imwrite('segmentation.jpg', result)
     contours, _ = cv2.findContours(result, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # flat
     contours = np.concatenate(contours)
     hull = cv2.convexHull(contours)
+
+    # draw hull
+    #cv2.polylines(frame, [hull], isClosed=True, color=(255, 0, 0), thickness=2)
+
     # fit line
     vx, vy, x, y = cv2.fitLine(hull, cv2.DIST_L2, 0, 0.01, 0.01)
+    # given this line, separate points orthogonally
+    left_pts = []
+    right_pts = []
+    for pt in hull:
+        pt = pt[0]
+        if (pt[1] - y) / vy > (pt[0] - x) / vx:
+            left_pts.append(pt)
+        else:
+            right_pts.append(pt)
+
+    # fit lines
+    left_pts = np.array(left_pts)
+    right_pts = np.array(right_pts)
+
+    left_vx, left_vy, left_x, left_y = cv2.fitLine(left_pts, cv2.DIST_L2, 0, 0.01, 0.01)
+    right_vx, right_vy, right_x, right_y = cv2.fitLine(right_pts, cv2.DIST_L2, 0, 0.01, 0.01)
+
     # get as ax+b
-    a = vy / vx
-    b = y - a * x
+    left_k = left_vy / left_vx
+    left_b = left_y - left_k * left_x
+    right_k = right_vy / right_vx
+    right_b = right_y - right_k * right_x
 
-    # draw
-    lefty = int((-x * vy / vx) + y)
-    righty = int(((frame.shape[1] - x) * vy / vx) + y)
-    safety_line = np.array([[frame.shape[1] - 1, righty], [0, lefty]])
-
-    safety_line = hull
-    safety_line = np.squeeze(safety_line, axis=1)
+    # draw lines on black image
+    # img = np.zeros_like(frame)
+    # cv2.line(img, (0, int(left_b)), (frame.shape[1], int(left_k * frame.shape[1] + left_b)), (255, 255, 255), 2)
+    # cv2.line(img, (0, int(right_b)), (frame.shape[1], int(right_k * frame.shape[1] + right_b)), (255, 255, 255), 2)
+    # # save image
+    # cv2.imwrite('lines.jpg', img)
 
     objs = []
 
-    objs.append(('line', safety_line))
+    objs.append(('line', (left_k, left_b)))
+    objs.append(('line', (right_k, right_b)))
 
     result = yolo_pose.predict(frame, imgsz=320, verbose=False)[0]
     for i in range(len(result.boxes)):
@@ -59,7 +84,7 @@ def detect_objects(frame):
         kps = np.concatenate(kps)
         objs.append(('person', np.concatenate([bbox, kps])))
 
-    result = yolo_seg.predict(frame, imgsz=320, verbose=False, conf=0.6)[0]
+    result = yolo_seg.predict(frame, imgsz=320, verbose=False, conf=0.65)[0]
     for i in range(len(result.boxes)):
         cls = int(result.boxes[i].cls)
         cls = result.names[cls]

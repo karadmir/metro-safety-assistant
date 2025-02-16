@@ -19,17 +19,20 @@ function upload() {
     input.click();
 }
 
-function proceed() {
+function analyze() {
     if (currentVideo === null) {
         alert('Please upload a video first');
         return;
     }
     const form = new FormData();
     form.append('video', currentVideo);
+    // set video to loading
+    document.getElementById('loader').style.display = 'flex';
     fetch(endpoint + '/process', {
         method: 'POST',
         body: form
     }).then(response => {
+        document.getElementById('loader').style.display = 'none';
         if (response.ok) {
             video.src = endpoint + '/result/0/video'
         } else {

@@ -33,4 +33,7 @@ for i in frame_indexes:
         print('Error: Cannot read frame.')
         break
     output_file = os.path.join(args.output_dir, 'frame_{:05d}.png'.format(random.randint(0, 99999)))
+    # if exists, skip
+    if os.path.exists(output_file):
+        continue
     cv2.imwrite(output_file, frame)
