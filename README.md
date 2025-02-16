@@ -1,6 +1,6 @@
-# SubSafe: AI-Powered Subway Safety System
+# MetroSafe: AI-Powered Metro Safety System
 
-Computer vision system for monitoring passenger safety on subway platforms.
+Computer vision system for monitoring passenger safety on metro platforms.
 
 ## Features
 
